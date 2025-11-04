@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dilbert</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      nav {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background-color: rgba(31, 41, 55, 0.8);
+      }
+    </style>
+    <link href="./main.css" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-900 text-gray-100">
+    <nav class="sticky top-0 z-10 w-full border-b border-gray-700 shadow-lg">
+      <div
+        class="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0"
+      >
+        <div class="flex items-center space-x-4">
+          <div>
+            <label
+              for="year-selector"
+              class="text-sm font-medium text-gray-300 mr-2"
+              >Jump to year:</label
+            >
+            <select
+              id="year-selector"
+              class="bg-gray-700 border border-gray-600 text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5"
+              style="color-scheme: dark"
+              disabled
+            >
+              <option value="">Select a year...</option>
+            </select>
+          </div>
+          <div>
+            <label
+              for="month-selector"
+              class="text-sm font-medium text-gray-300 mr-2"
+              >Jump to Month:</label
+            >
+            <select
+              id="month-selector"
+              class="bg-gray-700 border border-gray-600 text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5"
+              style="color-scheme: dark"
+              disabled
+            >
+              <option value="">Select a month...</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-8">
+      <div id="strips-container" class="space-y-12"></div>
+    </main>
+
+    <script>
+      function createStripElement(strip) {
+        const div = document.createElement("div");
+        div.id = "strip-" + strip.date;
+        div.className =
+          "bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-700";
+
+        const displayDate = new Date(
+          strip.date + "T12:00:00Z",
+        ).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        div.innerHTML =
+          '<h2 class="text-xl font-semibold text-white px-5 py-3 border-b border-gray-700">' +
+          displayDate +
+          "</h2>" +
+          '<div class="p-2 sm:p-4">' +
+          '<img src="' +
+          strip.url +
+          '" ' +
+          'alt="Dilbert for ' +
+          strip.date +
+          '" ' +
+          'class="w-full h-auto rounded" ' +
+          'loading="eager">' +
+          "</div>";
+        return div;
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        var selectedYear = window.location.pathname.split("/")[1];
+        const yearSelector = document.getElementById("year-selector");
+
+        try {
+          const response = await fetch("/api/years");
+          if (!response.ok) throw new Error("Failed to load years");
+
+          const years = await response.json();
+
+          if (years.length === 0) {
+            return;
+          }
+
+          years.forEach((year) => {
+            const option = document.createElement("option");
+            option.value = year;
+            option.textContent = year;
+            yearSelector.appendChild(option);
+          });
+
+          if (!selectedYear) {
+            selectedYear = years[0];
+          }
+        } catch (error) {
+          console.error("Error loading years:", error);
+          loading.textContent = "Error: " + error.message;
+          loading.classList.add("text-red-400");
+        }
+
+        yearSelector.addEventListener("change", (e) => {
+          const year = e.target.value;
+          if (!year) return;
+
+          console.log("loading year " + year);
+
+          loadStrips(year);
+        });
+
+        yearSelector.disabled = false;
+
+        await loadStrips(selectedYear);
+      });
+
+      async function loadStrips(year) {
+        const stripsContainer = document.getElementById("strips-container");
+        const monthSelector = document.getElementById("month-selector");
+
+        document.title = "Dilbert - " + year;
+
+        stripsContainer.replaceChildren(); //TODO
+
+        try {
+          const response = await fetch("/api/strips/" + year);
+          if (!response.ok)
+            throw new Error("Failed to load comic data for " + year);
+
+          const allStrips = (await response.json()) || [];
+
+          if (allStrips.length === 0) {
+            return;
+          }
+
+          const earliestStripForMonth = {};
+          const monthNames = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
+
+          allStrips.forEach((strip) => {
+            const monthIndex = new Date(
+              strip.date + "T12:00:00Z",
+            ).getUTCMonth();
+            if (!earliestStripForMonth[monthIndex]) {
+              earliestStripForMonth[monthIndex] = strip.date;
+            }
+          });
+          monthSelector.replaceChildren(); //TODO
+
+          const sortedMonthIndexes = Object.keys(earliestStripForMonth)
+            .map(Number)
+            .sort((a, b) => a - b);
+
+          sortedMonthIndexes.forEach((monthIndex) => {
+            const option = document.createElement("option");
+            option.value = earliestStripForMonth[monthIndex];
+            option.textContent = monthNames[monthIndex];
+            monthSelector.appendChild(option);
+          });
+
+          monthSelector.disabled = false;
+
+          monthSelector.addEventListener("change", (e) => {
+            const date = e.target.value;
+            if (!date) return;
+
+            console.log("jumping to " + date);
+
+            const targetElement = document.getElementById("strip-" + date);
+            if (targetElement) {
+              targetElement.scrollIntoView({
+                behavior: "instant",
+                block: "center",
+              });
+
+              targetElement.classList.add(
+                "ring-2",
+                "ring-blue-500",
+                "transition-all",
+                "duration-300",
+              );
+              setTimeout(() => {
+                targetElement.classList.remove("ring-2", "ring-blue-500");
+              }, 2500);
+            }
+
+            e.target.value = "";
+          });
+
+          const fragment = document.createDocumentFragment();
+
+          allStrips.forEach((strip) => {
+            const stripElement = createStripElement(strip);
+            fragment.appendChild(stripElement);
+          });
+
+          stripsContainer.appendChild(fragment);
+        } catch (error) {
+          console.error("Error loading strips:", error);
+        }
+      }
+    </script>
+  </body>
+</html>
