@@ -1,7 +1,10 @@
 .PHONY: clean distclean run pretty
 
-dilbertd: main.go go.mod frontend/src/index.html frontend/src/main.css
+dilbertd: main.go go.sum frontend/src/index.html frontend/src/main.css
 	go build
+
+go.sum: go.mod
+	go get dilbertd
 
 frontend/src/main.css: node_modules frontend/src/index.html frontend/src/input.css frontend/tailwind.config.js
 	npx @tailwindcss/cli -i frontend/src/input.css -o frontend/src/main.css
