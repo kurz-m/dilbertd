@@ -197,6 +197,7 @@ func main() {
 
 	http.HandleFunc("/", serveApp)
 
+	log.Printf("Serving %d comic strips at port %d", len(stripsByPath), port)
 	if err := http.ListenAndServe(":"+strconv.FormatUint(uint64(port), 10), nil); err != nil {
 		log.Printf("Failed to start webserver: %v", err)
 		os.Exit(1)
