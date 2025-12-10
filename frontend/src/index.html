@@ -183,10 +183,15 @@
             .map(Number)
             .sort((a, b) => a - b);
 
+          var first = true;
           sortedMonthIndexes.forEach((monthIndex) => {
             const option = document.createElement("option");
             option.value = earliestStripForMonth[monthIndex];
             option.textContent = monthNames[monthIndex];
+            if (first) {
+              first = false;
+              option.selected = true;
+            }
             monthSelector.appendChild(option);
           });
 
@@ -213,8 +218,6 @@
                 targetElement.classList.remove("ring-2", "ring-blue-500");
               }, 2500);
             }
-
-            e.target.value = "";
           });
 
           const fragment = document.createDocumentFragment();
