@@ -126,8 +126,6 @@
           const year = e.target.value;
           if (!year) return;
 
-          console.log("loading year " + year);
-
           loadStrips(year);
         });
 
@@ -197,8 +195,6 @@
           monthSelector.addEventListener("change", (e) => {
             const date = e.target.value;
             if (!date) return;
-
-            console.log("jumping to " + date);
 
             const targetElement = document.getElementById("strip-" + date);
             if (targetElement) {
