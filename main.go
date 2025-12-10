@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -86,7 +87,7 @@ func scanComics(arc *sevenzip.ReadCloser) {
 		stripsByYear[year] = append(stripsByYear[year], ComicStrip{
 			Date: StripDate{t},
 			Year: year,
-			URL:  "/comics/" + filepath.ToSlash(path),
+			URL:  "/comics/" + year + "/" + url.PathEscape(strings.Split(path, "/")[1]),
 		})
 		yearSet[year] = true
 	}
