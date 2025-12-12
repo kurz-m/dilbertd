@@ -106,19 +106,22 @@
             return;
           }
 
-          years.forEach((year) => {
-            const option = document.createElement("option");
-            option.value = year;
-            option.textContent = year;
-            yearSelector.appendChild(option);
-          });
-
           if (!currentStrip) {
             selectedYear = years[0];
           } else {
             const year = currentStrip.split("-")[1];
             selectedYear = year;
           }
+
+          years.forEach((year) => {
+            const option = document.createElement("option");
+            option.value = year;
+            option.textContent = year;
+            if (year == selectedYear) {
+              option.selected = true;
+            }
+            yearSelector.appendChild(option);
+          });
         } catch (error) {
           console.error("Error loading years:", error);
           loading.textContent = "Error: " + error.message;
