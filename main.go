@@ -97,7 +97,7 @@ func scanComics(arc *sevenzip.ReadCloser) {
 	for y := range yearSet {
 		yearsList = append(yearsList, y)
 	}
-	sort.Sort(sort.StringSlice(yearsList))
+	sort.Strings(yearsList)
 
 	for _, strips := range stripsByYear {
 		sort.Slice(strips, func(i, j int) bool {
@@ -151,16 +151,16 @@ func serveComics(w http.ResponseWriter, r *http.Request) {
 	if found {
 		f, err := file.Open()
 		if err != nil {
-			log.Printf("Unable top open comic strip %s: %v", reqStrip, err)
-			http.Error(w, "Unable top open comic strip", http.StatusInternalServerError)
+			log.Printf("Unable to open comic strip %s: %v", reqStrip, err)
+			http.Error(w, "Unable to open comic strip", http.StatusInternalServerError)
 			return
 		}
 		defer f.Close()
 
 		_, err = io.Copy(w, f)
 		if err != nil {
-			log.Printf("Unable top serve comic strip %s: %v", reqStrip, err)
-			http.Error(w, "Unable top serve comic strip", http.StatusInternalServerError)
+			log.Printf("Unable to serve comic strip %s: %v", reqStrip, err)
+			http.Error(w, "Unable to serve comic strip", http.StatusInternalServerError)
 			return
 		}
 	} else {
